@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Personal AI Assistant</title>
+<style>
+body{font-family:Arial;background:#101827;color:white;text-align:center;padding:25px}
+main{max-width:420px;margin:40px auto}
+input,button,textarea{box-sizing:border-box;width:100%;padding:14px;margin:9px 0;border-radius:10px;border:1px solid #526078;font-size:16px}
+input,textarea{background:#202c40;color:white}
+button{background:#526dfe;color:white;border:0;font-weight:bold}
+#answer{background:#202c40;padding:18px;border-radius:12px;min-height:70px;text-align:left;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main>
+<h1>My AI Assistant</h1>
+<p>Your personal assistant, ready to help.</p>
+
+<input id="url" placeholder="Paste your n8n Production URL">
+<input id="key" type="password" placeholder="Enter your private assistant key">
+
+<textarea id="message" placeholder="Type your message here"></textarea>
+<button onclick="sendMessage()">Send message</button>
+<button onclick="listen()">🎤 Speak to assistant</button>
+<button onclick="speak()">🔊 Read last reply</button>
+
+<h3>Assistant's reply</h3>
+<div id="answer">Your reply will appear here.</div>
+</main>
+
+<script>
+let lastReply = "";
+
+async function sendMessage(){
+ const url=document.getElementById("url").value.trim();
+ const key=document.getElementById("key").value;
+ const message=document.getElementById("message").value.trim();
+ const answer=document.getElementById("answer");
+
+ if(!url||!key||!message){
+  answer.textContent="Please enter the URL, private key and message.";
+  return;
+ }
+
+ answer.textContent="Thinking...";
+
+ try{
+  const response=await fetch(url,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "X-Assistant-Key":key
+   },
+   body:JSON.stringify({message})
+  });
+
+  const data=await response.json();
+  if(!response.ok) throw new Error(JSON.stringify(data));
+
+  lastReply=typeof data==="string"?data:
+   data.output||data.text||data.response||JSON.stringify(data);
+
+  answer.textContent=lastReply;
+ }catch(error){
+  answer.textContent="Connection error: "+error.message;
+ }
+}
+
+function listen(){
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Recognition){
+  alert("Voice recognition is not supported in this browser.");
+  return;
+ }
+ const recognition=new Recognition();
+ recognition.lang="en-NG";
+ recognition.onresult=e=>{
+  document.getElementById("message").value=e.results[0][0].transcript;
+  sendMessage();
+ };
+ recognition.start();
+}
+
+function speak(){
+ if(!lastReply){alert("There is no reply to read yet.");return;}
+ speechSynthesis.speak(new SpeechSynthesisUtterance(lastReply));
+}
+</script>
+</body>
+                                              </html>
