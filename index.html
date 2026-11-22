@@ -67,6 +67,7 @@ answer.textContent=lastReply;
 const utterance = new SpeechSynthesisUtterance(lastReply);
 utterance.lang = "en-NG";
 speechSynthesis.cancel();
+speechSynthesis.speak(utterance);
  }catch(error){
   answer.textContent="Connection error: "+error.message;
  }
