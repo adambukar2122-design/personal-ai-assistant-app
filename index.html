@@ -62,7 +62,11 @@ async function sendMessage(){
   lastReply=typeof data==="string"?data:
    data.output||data.text||data.response||JSON.stringify(data);
 
-  answer.textContent=lastReply;
+answer.textContent=lastReply;
+
+const utterance = new SpeechSynthesisUtterance(lastReply);
+utterance.lang = "en-NG";
+speechSynthesis.cancel();
  }catch(error){
   answer.textContent="Connection error: "+error.message;
  }
