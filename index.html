@@ -1,240 +1,420 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101827">
-<title>NEXA - Your Personal AI Assistant</title>
-<link rel="manifest" href="./manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="NEXA - Your personal AI assistant.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./nexa-icon-512.png">
+  <title>NEXA - Your Personal AI Assistant</title>
+
   <style>
-* { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background: #101827;
-  color: white;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      background: #101827;
+      color: #f1f5f9;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-main {
-  max-width: 450px;
-  margin: 35px auto;
-}
+    .app {
+      width: 100%;
+      max-width: 520px;
+      background: #182437;
+      border: 1px solid #293b54;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 12px 35px #0005;
+    }
 
-h1 { text-align: center; }
+    .brand {
+      text-align: center;
+      margin-bottom: 25px;
+    }
 
-.subtitle {
-  text-align: center;
-  color: #b8c4d8;
-}
+    .brand img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 20px;
+    }
 
-input, textarea, button {
-  width: 100%;
-  padding: 15px;
-  margin: 9px 0;
-  border-radius: 10px;
-  font-size: 16px;
-}
+    h1 {
+      margin: 10px 0 5px;
+      color: #55d6ff;
+      letter-spacing: 4px;
+      font-size: 30px;
+    }
 
-input, textarea {
-  background: #202c40;
-  color: white;
-  border: 1px solid #526078;
-}
+    .subtitle {
+      color: #9fb0c5;
+      font-size: 14px;
+    }
 
-textarea {
-  min-height: 110px;
-  resize: vertical;
-}
+    label {
+      display: block;
+      margin: 16px 0 7px;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
 
-button {
-  background: #526dfe;
-  color: white;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
+    input, textarea {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid #354963;
+      background: #101827;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
 
-button:disabled {
-  opacity: 0.6;
-}
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
 
-#answer {
-  background: #202c40;
-  padding: 18px;
-  border-radius: 12px;
-  min-height: 80px;
-  white-space: pre-wrap;
-  line-height: 1.5;
-}
+    input:focus, textarea:focus {
+      border-color: #55d6ff;
+    }
 
-#status {
-  color: #b8c4d8;
-  text-align: center;
-  min-height: 24px;
-}
-</style>
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 13px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .send {
+      width: 100%;
+      margin-top: 14px;
+      background: #28b9e8;
+      color: #071522;
+    }
+
+    .voice-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .voice-buttons button {
+      flex: 1;
+      background: #293d59;
+      color: white;
+    }
+
+    .voice-buttons button.listening {
+      background: #b93852;
+    }
+
+    #status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 9px;
+      background: #101827;
+      color: #9fb0c5;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .reply {
+      margin-top: 18px;
+      padding: 15px;
+      background: #101827;
+      border-radius: 12px;
+      border: 1px solid #293b54;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .reply-title {
+      color: #55d6ff;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .note {
+      color: #8193aa;
+      font-size: 11px;
+      margin-top: 18px;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
-<main>
+  <main class="app">
 
-<h1>NEXA</h1>
-<p class="subtitle">Your personal assistant, ready to help.</p>
+    <div class="brand">
+      <img src="./nexa-icon-512.png" alt="NEXA logo">
+      <h1>NEXA</h1>
+      <div class="subtitle">Your Personal AI Assistant</div>
+    </div>
 
-<input id="url" type="url"
-placeholder="Paste your n8n Production URL">
+    <label for="webhookUrl">Assistant connection URL</label>
+    <input
+      id="webhookUrl"
+      type="url"
+      placeholder="Enter your existing n8n webhook URL"
+      autocomplete="url"
+    >
 
-<input id="key" type="password"
-placeholder="Enter your private assistant key">
+    <label for="assistantKey">Private assistant key</label>
+    <input
+      id="assistantKey"
+      type="password"
+      placeholder="Enter your existing private key"
+      autocomplete="off"
+    >
 
-<textarea id="message"
-placeholder="Type your message here"></textarea>
+    <label for="message">Your message</label>
+    <textarea
+      id="message"
+      placeholder="Type your message here..."
+    ></textarea>
 
-<button id="sendBtn" onclick="sendMessage()">
-Send message
-</button>
+    <button class="send" id="sendButton">
+      Send Message
+    </button>
 
-<button onclick="listen()">
-🎤 Speak to assistant
-</button>
+    <div class="voice-buttons">
+      <button id="micButton">🎙️ Tap to Speak</button>
+      <button id="readButton">🔊 Read Last Reply</button>
+    </div>
 
-<button onclick="repeatReply()">
-🔊 Read last reply
-</button>
+    <div id="status" role="status" aria-live="polite">
+      NEXA is ready.
+    </div>
 
-<p id="status">Ready</p>
+    <div class="reply">
+      <div class="reply-title">NEXA'S RESPONSE</div>
+      <div id="reply">Your assistant's response will appear here.</div>
+    </div>
 
-<h3>Assistant's reply</h3>
-<div id="answer">Your reply will appear here.</div>
+    <div class="note">
+      Your personal AI assistant.
+    </div>
 
-</main>
+  </main>
 
-<script>
-let lastReply = "";
-let recognition = null;
+  <script>
+    const webhookInput = document.getElementById("webhookUrl");
+    const keyInput = document.getElementById("assistantKey");
+    const messageInput = document.getElementById("message");
+    const sendButton = document.getElementById("sendButton");
+    const micButton = document.getElementById("micButton");
+    const readButton = document.getElementById("readButton");
+    const statusBox = document.getElementById("status");
+    const replyBox = document.getElementById("reply");
 
-function setStatus(message) {
-  document.getElementById("status").textContent = message;
-}
+    let lastReply = "";
+    let recognition = null;
+    let listening = false;
 
-function speakReply(text) {
-  if (!("speechSynthesis" in window)) {
-    setStatus("Voice output is not supported.");
-    return;
-  }
+    function setStatus(message) {
+      statusBox.textContent = message;
+    }
 
-  window.speechSynthesis.cancel();
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-NG";
-  utterance.rate = 1;
-  utterance.pitch = 1;
+    function speakReply(text) {
+      if (!("speechSynthesis" in window)) {
+        setStatus("Speech playback is not supported by this browser.");
+        return;
+      }
 
-  utterance.onstart = () => setStatus("Speaking...");
-  utterance.onend = () => setStatus("Ready");
-  utterance.onerror = () => setStatus("Could not play voice. Tap Read last reply.");
+      stopSpeaking();
 
-  window.speechSynthesis.speak(utterance);
-}
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-NG";
+      utterance.rate = 1;
+      utterance.pitch = 1;
 
-async function sendMessage() {
-  const url = document.getElementById("url").value.trim();
-  const key = document.getElementById("key").value;
-  const message = document.getElementById("message").value.trim();
-  const answer = document.getElementById("answer");
-  const sendBtn = document.getElementById("sendBtn");
+      utterance.onstart = () => {
+        setStatus("NEXA is speaking...");
+      };
 
-  if (!url || !key || !message) {
-    answer.textContent = "Please enter the URL, private key and message.";
-    return;
-  }
+      utterance.onend = () => {
+        if (!listening) {
+          setStatus("NEXA is ready.");
+        }
+      };
 
-  sendBtn.disabled = true;
-  answer.textContent = "Thinking...";
-  setStatus("Connecting to your assistant...");
+      utterance.onerror = () => {
+        if (!listening) {
+          setStatus("Speech playback stopped.");
+        }
+      };
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Assistant-Key": key
-      },
-      body: JSON.stringify({ message: message })
+      window.speechSynthesis.speak(utterance);
+    }
+
+    async function sendMessage() {
+      const webhookUrl = webhookInput.value.trim();
+      const assistantKey = keyInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (!webhookUrl || !assistantKey) {
+        setStatus("Please enter your connection URL and private key.");
+        return;
+      }
+
+      if (!message) {
+        setStatus("Please enter or speak a message first.");
+        return;
+      }
+
+      stopSpeaking();
+      sendButton.disabled = true;
+      setStatus("NEXA is thinking...");
+
+      try {
+        const response = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Assistant-Key": assistantKey
+          },
+          body: JSON.stringify({
+            message: message
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Connection error: " + response.status);
+        }
+
+        const data = await response.json();
+
+        const answer =
+          data.output ||
+          data.text ||
+          data.response ||
+          JSON.stringify(data);
+
+        lastReply = String(answer);
+        replyBox.textContent = lastReply;
+
+        speakReply(lastReply);
+
+      } catch (error) {
+        console.error(error);
+        setStatus("Unable to connect. Check your connection details.");
+      } finally {
+        sendButton.disabled = false;
+      }
+    }
+
+    sendButton.addEventListener("click", sendMessage);
+
+    if ("SpeechRecognition" in window ||
+        "webkitSpeechRecognition" in window) {
+
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-NG";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        listening = true;
+        micButton.classList.add("listening");
+        micButton.textContent = "🔴 Listening...";
+        setStatus("NEXA is listening. Speak now.");
+      };
+
+      recognition.onresult = (event) => {
+        const transcript =
+          event.results[event.results.length - 1][0].transcript;
+
+        messageInput.value = transcript;
+        setStatus("Your speech has been captured. Tap Send Message.");
+      };
+
+      recognition.onerror = (event) => {
+        setStatus("Microphone error: " + event.error);
+      };
+
+      recognition.onend = () => {
+        listening = false;
+        micButton.classList.remove("listening");
+        micButton.textContent = "🎙️ Tap to Speak";
+
+        if (!window.speechSynthesis.speaking) {
+          setStatus("NEXA is ready.");
+        }
+      };
+
+      micButton.addEventListener("click", () => {
+        // Stop NEXA speaking immediately when the microphone is tapped.
+        stopSpeaking();
+
+        if (listening) {
+          recognition.stop();
+          return;
+        }
+
+        try {
+          recognition.start();
+        } catch (error) {
+          setStatus("Microphone could not start. Please try again.");
+        }
+      });
+
+    } else {
+      micButton.disabled = true;
+      micButton.textContent = "Microphone unavailable";
+      setStatus("Voice input is not supported by this browser.");
+    }
+
+    readButton.addEventListener("click", () => {
+      if (!lastReply) {
+        setStatus("There is no response to read yet.");
+        return;
+      }
+
+      speakReply(lastReply);
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error("Request failed: " + response.status);
+    // Register NEXA's service worker.
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .catch(error => {
+            console.error(
+              "Service worker registration failed:",
+              error
+            );
+          });
+      });
     }
-
-    lastReply = typeof data === "string"
-      ? data
-      : data.output || data.text || data.response || JSON.stringify(data);
-
-    answer.textContent = lastReply;
-    setStatus("Reply received. Playing voice...");
-
-    speakReply(lastReply);
-
-  } catch (error) {
-    answer.textContent = "Connection error: " + error.message;
-    setStatus("Connection failed.");
-  } finally {
-    sendBtn.disabled = false;
-  }
-}
-
-function listen() {
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert("Voice input is not supported in this browser.");
-    return;
-  }
-
-  recognition = new SpeechRecognition();
-  recognition.lang = "en-NG";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  recognition.onstart = () => setStatus("Listening...");
-
-  recognition.onresult = (event) => {
-    const spokenText = event.results[0][0].transcript;
-    document.getElementById("message").value = spokenText;
-    setStatus("You said: " + spokenText);
-    sendMessage();
-  };
-
-  recognition.onerror = () => {
-    setStatus("Microphone error. Please try again.");
-  };
-
-  recognition.onend = () => {
-    if (document.getElementById("status").textContent === "Listening...") {
-      setStatus("Ready");
-    }
-  };
-speechSynthesis.cancel();
-  recognition.start();
-}
-
-function repeatReply() {
-  if (!lastReply) {
-    alert("There is no reply to read yet.");
-    return;
-  }
-
-  speakReply(lastReply);
-}
-</script>
+  </script>
 
 </body>
- </html>
- 
+</html>
