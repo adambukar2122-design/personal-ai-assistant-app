@@ -3,95 +3,238 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Personal AI Assistant</title>
+<meta name="theme-color" content="#101827">
+<title>Personal AI Assistant</title>
+
 <style>
-body{font-family:Arial;background:#101827;color:white;text-align:center;padding:25px}
-main{max-width:420px;margin:40px auto}
-input,button,textarea{box-sizing:border-box;width:100%;padding:14px;margin:9px 0;border-radius:10px;border:1px solid #526078;font-size:16px}
-input,textarea{background:#202c40;color:white}
-button{background:#526dfe;color:white;border:0;font-weight:bold}
-#answer{background:#202c40;padding:18px;border-radius:12px;min-height:70px;text-align:left;white-space:pre-wrap}
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #101827;
+  color: white;
+}
+
+main {
+  max-width: 450px;
+  margin: 35px auto;
+}
+
+h1 { text-align: center; }
+
+.subtitle {
+  text-align: center;
+  color: #b8c4d8;
+}
+
+input, textarea, button {
+  width: 100%;
+  padding: 15px;
+  margin: 9px 0;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+input, textarea {
+  background: #202c40;
+  color: white;
+  border: 1px solid #526078;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+button {
+  background: #526dfe;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+#answer {
+  background: #202c40;
+  padding: 18px;
+  border-radius: 12px;
+  min-height: 80px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+#status {
+  color: #b8c4d8;
+  text-align: center;
+  min-height: 24px;
+}
 </style>
 </head>
+
 <body>
 <main>
-<h1>My AI Assistant</h1>
-<p>Your personal assistant, ready to help.</p>
 
-<input id="url" placeholder="Paste your n8n Production URL">
-<input id="key" type="password" placeholder="Enter your private assistant key">
+<h1>My Personal AI Assistant</h1>
+<p class="subtitle">Your personal assistant, ready to help.</p>
 
-<textarea id="message" placeholder="Type your message here"></textarea>
-<button onclick="sendMessage()">Send message</button>
-<button onclick="listen()">🎤 Speak to assistant</button>
-<button onclick="speak()">🔊 Read last reply</button>
+<input id="url" type="url"
+placeholder="Paste your n8n Production URL">
+
+<input id="key" type="password"
+placeholder="Enter your private assistant key">
+
+<textarea id="message"
+placeholder="Type your message here"></textarea>
+
+<button id="sendBtn" onclick="sendMessage()">
+Send message
+</button>
+
+<button onclick="listen()">
+🎤 Speak to assistant
+</button>
+
+<button onclick="repeatReply()">
+🔊 Read last reply
+</button>
+
+<p id="status">Ready</p>
 
 <h3>Assistant's reply</h3>
 <div id="answer">Your reply will appear here.</div>
+
 </main>
 
 <script>
 let lastReply = "";
+let recognition = null;
 
-async function sendMessage(){
- const url=document.getElementById("url").value.trim();
- const key=document.getElementById("key").value;
- const message=document.getElementById("message").value.trim();
- const answer=document.getElementById("answer");
-
- if(!url||!key||!message){
-  answer.textContent="Please enter the URL, private key and message.";
-  return;
- }
-
- answer.textContent="Thinking...";
-
- try{
-  const response=await fetch(url,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "X-Assistant-Key":key
-   },
-   body:JSON.stringify({message})
-  });
-
-  const data=await response.json();
-  if(!response.ok) throw new Error(JSON.stringify(data));
-
-  lastReply=typeof data==="string"?data:
-   data.output||data.text||data.response||JSON.stringify(data);
-
-answer.textContent=lastReply;
-
-const utterance = new SpeechSynthesisUtterance(lastReply);
-utterance.lang = "en-NG";
-speechSynthesis.cancel();
-speechSynthesis.speak(utterance);
- }catch(error){
-  answer.textContent="Connection error: "+error.message;
- }
+function setStatus(message) {
+  document.getElementById("status").textContent = message;
 }
 
-function listen(){
- const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Recognition){
-  alert("Voice recognition is not supported in this browser.");
-  return;
- }
- const recognition=new Recognition();
- recognition.lang="en-NG";
- recognition.onresult=e=>{
-  document.getElementById("message").value=e.results[0][0].transcript;
-  sendMessage();
- };
- recognition.start();
+function speakReply(text) {
+  if (!("speechSynthesis" in window)) {
+    setStatus("Voice output is not supported.");
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-NG";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  utterance.onstart = () => setStatus("Speaking...");
+  utterance.onend = () => setStatus("Ready");
+  utterance.onerror = () => setStatus("Could not play voice. Tap Read last reply.");
+
+  window.speechSynthesis.speak(utterance);
 }
 
-function speak(){
- if(!lastReply){alert("There is no reply to read yet.");return;}
- speechSynthesis.speak(new SpeechSynthesisUtterance(lastReply));
+async function sendMessage() {
+  const url = document.getElementById("url").value.trim();
+  const key = document.getElementById("key").value;
+  const message = document.getElementById("message").value.trim();
+  const answer = document.getElementById("answer");
+  const sendBtn = document.getElementById("sendBtn");
+
+  if (!url || !key || !message) {
+    answer.textContent = "Please enter the URL, private key and message.";
+    return;
+  }
+
+  sendBtn.disabled = true;
+  answer.textContent = "Thinking...";
+  setStatus("Connecting to your assistant...");
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Assistant-Key": key
+      },
+      body: JSON.stringify({ message: message })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Request failed: " + response.status);
+    }
+
+    lastReply = typeof data === "string"
+      ? data
+      : data.output || data.text || data.response || JSON.stringify(data);
+
+    answer.textContent = lastReply;
+    setStatus("Reply received. Playing voice...");
+
+    speakReply(lastReply);
+
+  } catch (error) {
+    answer.textContent = "Connection error: " + error.message;
+    setStatus("Connection failed.");
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function listen() {
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Voice input is not supported in this browser.");
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-NG";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => setStatus("Listening...");
+
+  recognition.onresult = (event) => {
+    const spokenText = event.results[0][0].transcript;
+    document.getElementById("message").value = spokenText;
+    setStatus("You said: " + spokenText);
+    sendMessage();
+  };
+
+  recognition.onerror = () => {
+    setStatus("Microphone error. Please try again.");
+  };
+
+  recognition.onend = () => {
+    if (document.getElementById("status").textContent === "Listening...") {
+      setStatus("Ready");
+    }
+  };
+
+  recognition.start();
+}
+
+function repeatReply() {
+  if (!lastReply) {
+    alert("There is no reply to read yet.");
+    return;
+  }
+
+  speakReply(lastReply);
 }
 </script>
+
 </body>
-                                              </html>
+ </html>
+ 
